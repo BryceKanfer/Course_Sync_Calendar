@@ -1,9 +1,7 @@
 from datetime import datetime 
-from email.mime import text
 import json
 import os
 import re
-import time
 from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
@@ -25,6 +23,8 @@ if UBX_COURSES == []:
 
 def parse_due_date(due_day: str, due_time: str) -> datetime:
     match = re.search(r'(\d{1,2}:\d{2} [AP]M)', due_time)
+    if not match:
+        return None
     due_time = match.group(1)
     time = datetime.strptime(due_time, "%I:%M %p")
     dt = datetime.strptime(due_day, "%a, %b %d, %Y").replace(hour=time.hour, minute=time.minute, second=59, tzinfo=ZoneInfo("America/New_York"))
@@ -32,7 +32,7 @@ def parse_due_date(due_day: str, due_time: str) -> datetime:
 
 def parse_title(title: str) -> str:
     match = re.search(r'Homework \d+', title)
-    title = match.group(0) if match else "Unknown Assignment"
+    title = match.group(0) if match else title
     return title
 
 def load_seen_titles() -> set:
@@ -70,15 +70,12 @@ def parse_ubx_duedates() -> list[DueDate]:
             for i, line in enumerate(lines):
                 if "due" in line:
                     title = parse_title(lines[i])
-                    due_date = parse_due_date(lines[i - 2], lines[i])
-                    if (course + ": " + title) not in SEEN_TITLES:
+                    due = parse_due_date(lines[i - 2], lines[i])
+                    if due >= datetime.now(ZoneInfo("America/New_York")) and (course + ": " + title) not in SEEN_TITLES:
                         SEEN_TITLES.add(course + ": " + title)
-                        due_dates.append(DueDate(title, due_date, course, "assignment", "", "UBX"))
-                        print(f"Added {title} for {course} due on {due_date}")
+                        due_dates.append(DueDate(title, due, course, "assignment", "", "UBX"))
             page.goto("https://apps.learning.buffalo.edu/learner-dashboard/", wait_until="domcontentloaded")
 
     save_seen_titles(SEEN_TITLES)
     return due_dates
-
-parse_ubx_duedates()
     

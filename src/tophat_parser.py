@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
@@ -60,6 +59,7 @@ def parse_tophat_duedates() -> list[DueDate]:
 
         due_dates = []
         SEEN_TITLES = load_seen_titles()
+        now = datetime.now(ZoneInfo("America/New_York"))
 
         for course in TOPHAT_COURSES:
             page.click("text=" + course)
@@ -72,10 +72,12 @@ def parse_tophat_duedates() -> list[DueDate]:
                 if "Due in" in line:
                     title = lines[i - 2]
                     due = parse_due_date(line)
-                    if (course + ": " + title) not in SEEN_TITLES:
+                    if due >= now and (course + ": " + title) not in SEEN_TITLES:
                         SEEN_TITLES.add(course + ": " + title)
                         due_dates.append(DueDate(title, due, course, "assignment", "", "TopHat"))
             page.goto("https://app.tophat.com/e", wait_until="domcontentloaded")
+
+        browser.close()
 
     save_seen_titles(SEEN_TITLES)
     return due_dates
