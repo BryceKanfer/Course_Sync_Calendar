@@ -206,8 +206,15 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Local State
-seen_autolab.json
-seen_brightspace.json
-seen_ubx.json
-seen_tophat.json
+#Local State
+seen_calendar.json
+config.json
+
+# Testing Files
+test_file.py
+
+# Service Account
+service_account.json
+
+# VS Code Settings
+.vscode/

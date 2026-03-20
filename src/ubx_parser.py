@@ -7,21 +7,24 @@ from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
 from due_date import DueDate
 
-
+# Load environment variables and config
 load_dotenv()
 UBX_EMAIL = os.getenv('UBX_EMAIL')
 UBX_PASSWORD = os.getenv('UBX_PASSWORD')
-UBX_COURSES = ["MTH 309 (Rai)"]
-seen_file = "seen_ubx.json"
+with open(os.path.join(os.path.dirname(__file__), "..", "config.json")) as f:
+    config = json.load(f)
+UBX_COURSES = config["ubx_courses"]
 
+# Validate environment variables and config
 if not UBX_EMAIL:
     raise EnvironmentError("UBX_EMAIL is not set in .env")
 if not UBX_PASSWORD:
     raise EnvironmentError("UBX_PASSWORD is not set in .env")
-if UBX_COURSES == []:
-    raise ValueError("ubx_courses list is empty. Please add course names to the list in ubx_parser.py")
+if not UBX_COURSES:
+    raise ValueError("ubx_courses list is empty. Please add course names to the list in config.json")
 
-def parse_due_date(due_day: str, due_time: str) -> datetime:
+# Parse the text into datetime object using regex.
+def parse_due_date(due_day: str, due_time: str) -> datetime | None:
     match = re.search(r'(\d{1,2}:\d{2} [AP]M)', due_time)
     if not match:
         return None
@@ -30,21 +33,13 @@ def parse_due_date(due_day: str, due_time: str) -> datetime:
     dt = datetime.strptime(due_day, "%a, %b %d, %Y").replace(hour=time.hour, minute=time.minute, second=59, tzinfo=ZoneInfo("America/New_York"))
     return dt
 
+# Reduce titles using regex to extract repeat word.
 def parse_title(title: str) -> str:
     match = re.search(r'Homework \d+', title)
     title = match.group(0) if match else title
     return title
 
-def load_seen_titles() -> set:
-    if os.path.exists(seen_file):
-        with open(seen_file) as f:
-            return set(json.load(f))
-    return set()
-
-def save_seen_titles(titles: set):
-    with open(seen_file, "w") as f:
-        json.dump(list(titles), f)
-
+# Traverse UBX courses and extract due dates. Return a list of DueDate objects.
 def parse_ubx_duedates() -> list[DueDate]:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
@@ -58,7 +53,7 @@ def parse_ubx_duedates() -> list[DueDate]:
         page.click("text=Yes, this is my device")
 
         due_dates = []
-        SEEN_TITLES = load_seen_titles()
+        now = datetime.now(ZoneInfo("America/New_York"))
 
         for course in UBX_COURSES:
             page.click("text=" + course)
@@ -69,13 +64,17 @@ def parse_ubx_duedates() -> list[DueDate]:
 
             for i, line in enumerate(lines):
                 if "due" in line:
-                    title = parse_title(lines[i])
-                    due = parse_due_date(lines[i - 2], lines[i])
-                    if due >= datetime.now(ZoneInfo("America/New_York")) and (course + ": " + title) not in SEEN_TITLES:
-                        SEEN_TITLES.add(course + ": " + title)
+                    title = parse_title(lines[i]) if i >= 1 else "Unknown"
+                    due = parse_due_date(lines[i - 2] if i >= 2 else "", lines[i])
+
+                    # Skip if due date is not found or in the past.
+                    if due is None:
+                        continue
+                    elif due >= now:
                         due_dates.append(DueDate(title, due, course, "assignment", "", "UBX"))
+
             page.goto("https://apps.learning.buffalo.edu/learner-dashboard/", wait_until="domcontentloaded")
 
-    save_seen_titles(SEEN_TITLES)
+        browser.close()
+
     return due_dates
-    
