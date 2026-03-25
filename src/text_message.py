@@ -42,7 +42,7 @@ def format_message(due_dates: list[DueDate]) -> str:
     upcoming.sort(key=lambda d: d.due_date)
 
     lines = []
-    lines.append(f"- Course Sync Calendar -\n")
+    lines.append(f"- Course Sync Summary -\n")
 
     lines.append("Due Today:\n")
     if due_today:

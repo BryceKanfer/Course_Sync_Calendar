@@ -65,7 +65,10 @@ def parse_ubx_duedates() -> list[DueDate]:
             for i, line in enumerate(lines):
                 if "due" in line:
                     title = parse_title(lines[i]) if i >= 1 else "Unknown"
-                    due = parse_due_date(lines[i - 2] if i >= 2 else "", lines[i])
+                    if "Homework" in lines[i - 2] if i >= 2 else "":
+                        due = parse_due_date(lines[i - 1] if i >= 2 else "", lines[i])
+                    else:
+                        due = parse_due_date(lines[i - 2] if i >= 2 else "", lines[i])
 
                     # Skip if due date is not found or in the past.
                     if due is None:

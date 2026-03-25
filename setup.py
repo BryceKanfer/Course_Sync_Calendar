@@ -59,6 +59,8 @@ def setup_env():
     print("  4. Scroll down to 'Integrate calendar'")
     print("  5. Copy the Calendar ID")
     fields["GOOGLE_CALENDAR_ID"] = input("  Enter your Google Calendar ID: ").strip()
+    print ("6. Go to 'Shared With' and share your calendar with the service account email with 'Make changes to events' permission.")
+    input("Press Enter once you've shared your calendar with the service account...")
 
     with open(".env", "w") as f:
         for key, value in fields.items():
