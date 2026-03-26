@@ -21,8 +21,6 @@ if not TOPHAT_EMAIL:
     raise EnvironmentError("TOPHAT_EMAIL is not set in .env")
 if not TOPHAT_PASSWORD:
     raise EnvironmentError("TOPHAT_PASSWORD is not set in .env")
-if not TOPHAT_COURSES:
-    raise ValueError("tophat_courses list is empty. Please add course names to the list in config.json")
 
 # Parse text into datetime object using regex. 
 def parse_due_date(due_text: str) -> datetime | None:

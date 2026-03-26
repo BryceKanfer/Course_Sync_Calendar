@@ -20,8 +20,6 @@ if not UBX_EMAIL:
     raise EnvironmentError("UBX_EMAIL is not set in .env")
 if not UBX_PASSWORD:
     raise EnvironmentError("UBX_PASSWORD is not set in .env")
-if not UBX_COURSES:
-    raise ValueError("ubx_courses list is empty. Please add course names to the list in config.json")
 
 # Parse the text into datetime object using regex.
 def parse_due_date(due_day: str, due_time: str) -> datetime | None:

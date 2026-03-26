@@ -20,8 +20,6 @@ if not AUTOLAB_EMAIL:
     raise EnvironmentError("AUTOLAB_EMAIL is not set in .env")
 if not AUTOLAB_PASSWORD:
     raise EnvironmentError("AUTOLAB_PASSWORD is not set in .env")
-if not autolab_courses:
-    raise ValueError("autolab_courses list is empty. Please add course names to the list in config.json")
 
 # Parse str of a date into datetime object using regex
 def parse_due_date(due_text: str) -> datetime | None:

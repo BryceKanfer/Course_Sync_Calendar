@@ -123,10 +123,10 @@ def setup_service_account():
     print("  6. Rename it to 'service_account.json'")
     print("  7. Place it in the project root folder")
     input("Press Enter once service_account.json is in the project root...")
+    print("  8. Search Google Calendar API in the search bar and enable it for your project.")
+    input("Press Enter once you've enabled the Google Calendar API...")
     if os.path.exists("service_account.json"):
         print("service_account.json found.\n")
-        print("  Remember to share your Google Calendar with the service account email")
-        print("  with 'Make changes to events' permission.")
     else:
         print("Warning: service_account.json not found.\n")
 
